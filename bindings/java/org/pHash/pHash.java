@@ -5,18 +5,17 @@ import java.io.*;
 public class pHash
 {
 
-	public native static VideoHash videoHash(String file);
-	public native static AudioHash audioHash(String file);
+	/*
+	 * anything related to audio or video hashing is _not_ built if HAVE_AUDIO_HASH or HAVE_VIDEO_HASH
+	 *  are not defined and hence should then not be used as they won't have linked.
+	*/
 	public native static DCTImageHash dctImageHash(String file);
 	public native static MHImageHash mhImageHash(String file);
 	public native static TextHash textHash(String file);
 	public native static double imageDistance(ImageHash hash1, ImageHash hash2);
-	public native static double audioDistance(AudioHash hash1, AudioHash hash2);
-	public native static double videoDistance(VideoHash hash1, VideoHash hash2, int threshold);
 	public native static int textDistance(TextHash txtHash1, TextHash txtHash2);
 	private native static void pHashInit();
 	private native static void cleanup();
-
 
 	static {
         System.loadLibrary("pHash-jni");
@@ -36,7 +35,7 @@ public class pHash
 				MHImageHash mh = mhImageHash(files[i].toString());
 				if(mh != null)
 					hashes[i] = mh;
-			}	
+			}
 
 		}
 		return hashes;
@@ -77,12 +76,6 @@ public class pHash
             } else
                 System.out.println("Creating tree failed");
         }
-        else if(args[i].equals("-a"))
-        {
-            AudioHash audioHash1 = audioHash(args[1]);
-            AudioHash audioHash2 = audioHash(args[2]);
-            System.out.println("cs = " + audioDistance(audioHash1,audioHash2));
-        }
         else if(args[i].equals("-dct"))
         {
             DCTImageHash imHash = dctImageHash(args[1]);
@@ -101,12 +94,6 @@ public class pHash
 
             System.out.println(imageDistance(imHash,imHash2));
 
-        }
-        else if(args[i].equals("-v"))
-        {
-            VideoHash vHash = videoHash(args[1]);
-            VideoHash vHash2 = videoHash(args[2]);
-            System.out.println(videoDistance(vHash,vHash2, 21));
         }
         else if(args[i].equals("-t"))
         {

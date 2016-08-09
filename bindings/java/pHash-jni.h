@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifdef HAVE_VIDEO_HASH
 /*
  * Class:     pHash
  * Method:    videoHash
@@ -14,6 +16,7 @@ extern "C" {
  */
 JNIEXPORT jobject JNICALL Java_org_pHash_pHash_videoHash
   (JNIEnv *, jclass, jstring);
+#endif
 
 #ifdef HAVE_AUDIO_HASH
 /*
