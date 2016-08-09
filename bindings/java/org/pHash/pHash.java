@@ -1,5 +1,6 @@
 package org.pHash;
 
+import java.lang.*;
 import java.io.*;
 
 public class pHash
@@ -14,8 +15,15 @@ public class pHash
 	private native static void cleanup();
 
 	static {
-        System.loadLibrary("pHash-jni");
-		pHashInit();
+
+		try {
+			System.loadLibrary("pHash-jni");
+			pHashInit();
+		} catch (Throwable t) {
+			System.out.format("pHash-jni failed to load: %s \n", t.getMessage());
+			throw t;
+		}
+
 	}
 
 	public static MHImageHash[] getMHImageHashes(String d)
