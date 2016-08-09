@@ -5,10 +5,6 @@ import java.io.*;
 public class pHash
 {
 
-	/*
-	 * anything related to audio or video hashing is _not_ built if HAVE_AUDIO_HASH or HAVE_VIDEO_HASH
-	 *  are not defined and hence should then not be used as they won't have linked.
-	*/
 	public native static DCTImageHash dctImageHash(String file);
 	public native static MHImageHash mhImageHash(String file);
 	public native static TextHash textHash(String file);
