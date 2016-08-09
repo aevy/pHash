@@ -14,18 +14,6 @@ public class pHash
 	private native static void pHashInit();
 	private native static void cleanup();
 
-	static {
-
-		try {
-			System.loadLibrary("pHash-jni");
-			pHashInit();
-		} catch (Throwable t) {
-			System.out.format("pHash-jni failed to load: %s \n", t.getMessage());
-			throw t;
-		}
-
-	}
-
 	public static MHImageHash[] getMHImageHashes(String d)
 	{
 		File dir = new File(d);
@@ -43,6 +31,19 @@ public class pHash
 
 		}
 		return hashes;
+
+	}
+
+	public static void loadLibrary()
+	{
+
+		try {
+			System.loadLibrary("pHash-jni");
+			pHashInit();
+		} catch (Throwable t) {
+			System.out.format("pHash-jni failed to load: %s \n", t.getMessage());
+			throw t;
+		}
 
 	}
 
