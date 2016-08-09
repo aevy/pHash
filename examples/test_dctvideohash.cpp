@@ -22,6 +22,7 @@
 
 */
 
+#ifdef HAVE_VIDEO_HASH
 #include "config.h"
 
 #include "stdio.h"
@@ -87,4 +88,9 @@ int main(int argc, char **argv){
     printf("done\n");
     return 0;
 }
- 
+#endif
+
+// dummy to allow "test" to compile and run
+int main(int argc, char **argv) {
+    return 0;
+}

@@ -22,6 +22,7 @@
 
 */
 
+#ifdef HAVE_VIDEO_HASH
 #include "config.h"
 #include "cimgffmpeg.h"
 
@@ -425,3 +426,5 @@ float fps(const char *filename)
 	return result;
 
 }
+
+#endif
