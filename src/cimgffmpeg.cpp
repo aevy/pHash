@@ -25,12 +25,11 @@
 #ifdef HAVE_VIDEO_HASH
 #include "config.h"
 #include "cimgffmpeg.h"
-
 void vfinfo_close(VFInfo  *vfinfo){
     if (vfinfo->pFormatCtx != NULL){
 	avcodec_close(vfinfo->pCodecCtx);
 	vfinfo->pCodecCtx = NULL;
-	av_close_input_file(vfinfo->pFormatCtx);
+	avformat_close_input(&vfinfo->pFormatCtx);
 	vfinfo->pFormatCtx = NULL;
 	vfinfo->width = -1;
 	vfinfo->height = -1;
@@ -55,7 +54,7 @@ int ReadFrames(VFInfo *st_info, CImgList<uint8_t> *pFrameList, unsigned int low_
 	    av_register_all();
 	
 	    // Open video file
-	    if(av_open_input_file(&st_info->pFormatCtx, st_info->filename, NULL, 0, NULL)!=0)
+	    if(avformat_open_input(&st_info->pFormatCtx, st_info->filename, NULL, NULL)!=0)
 		return -1 ; // Couldn't open file
 	 
 	    // Retrieve stream information
@@ -160,7 +159,7 @@ int ReadFrames(VFInfo *st_info, CImgList<uint8_t> *pFrameList, unsigned int low_
 
 	if (result < 0){
 	    avcodec_close(st_info->pCodecCtx);
-	    av_close_input_file(st_info->pFormatCtx);
+	    avformat_close_input(&st_info->pFormatCtx);
 	    st_info->pFormatCtx = NULL;
 	    st_info->pCodecCtx = NULL;
 	    st_info->width = -1;
@@ -200,7 +199,7 @@ int NextFrames(VFInfo *st_info, CImgList<uint8_t> *pFrameList)
 
 		av_log_set_level(AV_LOG_QUIET);
 		// Open video file
- 		if(av_open_input_file(&(st_info->pFormatCtx),st_info->filename,NULL,0,NULL)!=0){
+		if(avformat_open_input(&(st_info->pFormatCtx),st_info->filename,NULL,NULL)!=0){
 			return -1 ; // Couldn't open file
 		}
 	 
@@ -321,7 +320,7 @@ int NextFrames(VFInfo *st_info, CImgList<uint8_t> *pFrameList)
 	if (result < 0)
 	{
 		avcodec_close(st_info->pCodecCtx);
-		av_close_input_file(st_info->pFormatCtx);
+		avformat_close_input(&st_info->pFormatCtx);
 		st_info->pCodecCtx = NULL;
 		st_info->pFormatCtx = NULL;
 		st_info->pCodec = NULL;
@@ -337,14 +336,14 @@ int GetNumberStreams(const char *file)
 	 av_log_set_level(AV_LOG_QUIET);
 	 av_register_all();
 	// Open video file
-	if (av_open_input_file(&pFormatCtx, file, NULL, 0, NULL))
+	if (avformat_open_input(&pFormatCtx, file, NULL, NULL))
 	  return -1 ; // Couldn't open file
 		 
 	// Retrieve stream information
 	if(av_find_stream_info(pFormatCtx)<0)
 	  return -1; // Couldn't find stream information
 	int result = pFormatCtx->nb_streams;
-	av_close_input_file(pFormatCtx);
+	avformat_close_input(&pFormatCtx);
 	return result;
 }
 
@@ -355,7 +354,7 @@ long GetNumberVideoFrames(const char *file)
     av_log_set_level(AV_LOG_QUIET);
 	av_register_all();
 	// Open video file
-	if (av_open_input_file(&pFormatCtx, file, NULL, 0, NULL))
+	if (avformat_open_input(&pFormatCtx, file, NULL, NULL))
 	  return -1 ; // Couldn't open file
 			 
 	// Retrieve stream information
@@ -379,14 +378,14 @@ long GetNumberVideoFrames(const char *file)
         nb_frames = str->nb_frames;
 	if (nb_frames > 0)
 	{   //the easy way if value is already contained in struct 
-	    av_close_input_file(pFormatCtx);
+	    avformat_close_input(&pFormatCtx);
 	    return nb_frames;
 	}
 	else { // frames must be counted
 	    AVPacket packet;
 		nb_frames = (long)av_index_search_timestamp(str,str->duration, AVSEEK_FLAG_ANY|AVSEEK_FLAG_BACKWARD);
 		// Close the video file
-		av_close_input_file(pFormatCtx); 
+		avformat_close_input(&pFormatCtx);
 		return nb_frames;
 	}
 }
@@ -397,7 +396,7 @@ float fps(const char *filename)
 	AVFormatContext *pFormatCtx;
 	
 	// Open video file
-	if (av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL))
+	if (avformat_open_input(&pFormatCtx, filename, NULL, NULL))
 	  return -1 ; // Couldn't open file
 				 
 	// Retrieve stream information
@@ -421,7 +420,7 @@ float fps(const char *filename)
 	int den = (pFormatCtx->streams[videoStream]->r_frame_rate).den;
 	result = num/den;
 
-	av_close_input_file(pFormatCtx);
+	avformat_close_input(&pFormatCtx);
 	
 	return result;
 

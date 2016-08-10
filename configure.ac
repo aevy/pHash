@@ -137,62 +137,6 @@ AC_CHECK_LIB([fftw3], [fftw_plan_dft_r2c_1d], [], [AC_MSG_ERROR([
 You need FFTW3. Get it at <http://fftw.org/>])])
 found_fftw="y"])
 
-AC_DEFUN([AC_CHECK_FFMPEG],
-[
-AC_MSG_CHECKING([whether FFmpeg is present])
-AC_CHECK_LIB([avcodec], [avcodec_alloc_frame], [], [AC_MSG_ERROR([
-
-*** libavcodec not found.
-You need FFmpeg. Get it at <http://ffmpeg.org/>])])
-
-AC_CHECK_LIB([avutil], [av_log_set_level], [], [AC_MSG_ERROR([
-
-*** libavutil not found.
-You need FFmpeg. Get it at <http://ffmpeg.org/>])])
-
-AC_CHECK_LIB([avformat], [av_read_frame], [], [AC_MSG_ERROR([
-
-*** libavformat not found.
-You need FFmpeg. Get it at <http://ffmpeg.org/>])])
-
-AC_CHECK_LIB([swscale], [sws_getContext], [], [AC_MSG_ERROR([
-
-*** libswscale not found.
-You need FFmpeg. Get it at <http://ffmpeg.org/>])])
-found_ffmpeg="y"])
-
-
-AC_DEFUN([AC_CHECK_SNDFILE],
-[
-AC_MSG_CHECKING([whether sndfile lib is present])
-AC_CHECK_LIB([sndfile], [sf_readf_float], [], [AC_MSG_ERROR([
-
-*** libsndfile not found.
-You need sndfile.  Get it at <http://www.mega-nerd.com/libsndfile/>])])
-found_sndfile="y"])
-
-
-AC_DEFUN([AC_CHECK_SAMPLERATE],
-[
-AC_MSG_CHECKING([whether samplerate lib is present])
-AC_CHECK_LIB([samplerate],[src_process],[],[AC_MSG_ERROR([
-
-*** libsamplerate not found.
-You need samplerate. Get it at <http://www.mega-nerd.com/libsamplerate/>])])
-found_samplerate="y"])
-
-
-AC_DEFUN([AC_CHECK_MPG123],
-[
-AC_MSG_CHECKING([whether libmpg123 is present])
-AC_CHECK_LIB([mpg123],[mpg123_init],[],[AC_MSG_ERROR([
-
-*** libmpg123 not found.
-You need libmpg123.
-Get it at <http://www.mpg123.de/>])])
-found_mpg123="y"])
-
-
 AC_ARG_ENABLE([image-hash], [AS_HELP_STRING([--enable-image-hash],[include support for perceptual image hashes @<:@default=yes@:>@])],
 [image_hash=$enableval], [image_hash=yes])
 AS_IF([test x"$image_hash" != x"no"],
@@ -206,63 +150,11 @@ AS_IF([test x"$image_hash" != x"no"],
 
 AM_CONDITIONAL(HAVE_IMAGE_HASH, test x$image_hash != xno)
 
-AC_ARG_ENABLE([video-hash], [AS_HELP_STRING([--enable-video-hash],[include support for perceptual video hashes @<:@default=yes@:>@])],
-[video_hash=$enableval], [video_hash=yes])
-AS_IF([test x"$video_hash" != x"no"],
-	[
-	echo
-	echo "*** Configuring video Hash ***"
-	echo
-	if test "$found_ffmpeg" != "y"; then
-		AC_CHECK_FFMPEG() 
-	fi
-	if test "$found_cimg" != "y"; then
-		AC_CHECK_CIMG()
-	fi
-	AC_DEFINE([HAVE_VIDEO_HASH],[1], [configure with video hash])
-	])
-
-AM_CONDITIONAL(HAVE_VIDEO_HASH, test x$video_hash != xno)
-
-AC_ARG_ENABLE([audio-hash], [AS_HELP_STRING([--enable-audio-hash],[include support for perceptual audio hashes @<:@default=yes@:>@])],
-[audio_hash=$enableval], [audio_hash=yes])
-AS_IF([test x"$audio_hash" != x"no"],
-	[
-	echo
-	echo "*** Configuring audio hash ***"
-	echo
-	if test "$found_sndfile" != "y"; then
-		AC_CHECK_SNDFILE() 
-	fi
-
-	if test "$found_samplerate" != "y"; then
-		AC_CHECK_SAMPLERATE()
-	fi
-	if test "$found_mpg123" != "y"; then
-		AC_CHECK_MPG123()
-	fi
-	AC_DEFINE([HAVE_AUDIO_HASH],[1], [configure with audio hash])
-	])
-
-AM_CONDITIONAL(HAVE_AUDIO_HASH, test x$audio_hash != xno)
-
-if test "$video_hash" = "yes"; then
-case "$DISTRO" in
-	debian)
-		CPPFLAGS="$CPPFLAGS -I/usr/include/ffmpeg"
-		;;
-	redhat)
-		CPPFLAGS="$CPPFLAGS -I/usr/include/libavcodec -I/usr/include/libavformat -I/usr/include/libswscale"
-		;;
-esac
-fi
 # Checks for libraries.
-
 
 AC_CHECK_LIB([jpeg], [jpeg_read_header], [use_jpeg="y"])
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([png], [png_create_read_struct], [use_png="y"])
-
 
 AS_IF([test "$found_fftw" = "y"],
 [
@@ -298,4 +190,3 @@ AC_FUNC_ERROR_AT_LINE
 AC_CHECK_FUNCS([mremap malloc realloc floor gettimeofday memmove memset pow sqrt strcasecmp strdup strncasecmp])
 AC_CONFIG_FILES([Makefile src/Makefile examples/Makefile pHash.pc bindings/Makefile bindings/java/Makefile])
 AC_OUTPUT
-
