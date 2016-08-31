@@ -27,6 +27,9 @@
 #include "pHash-jni.h"
 #include "pHash.h"
 #include "pHash_MVPTree.h"
+#include <functional>
+#include <stdexcept>
+#include <cstdio>
 
 #ifdef HAVE_AUDIO_HASH
 #include "audiophash.h"
@@ -60,6 +63,40 @@ jmethodID vidCtor = NULL;
 #ifdef HAVE_AUDIO_HASH
 jmethodID audioCtor = NULL;
 #endif
+
+// This is how we represent a Java exception already in progress
+struct ThrownJavaException : std::runtime_error {
+	ThrownJavaException() : std::runtime_error("") {}
+	ThrownJavaException(const std::string& msg ) : std::runtime_error(msg) {}
+};
+
+struct NewJavaException : public ThrownJavaException{
+	NewJavaException(JNIEnv * env, const char* type="", const char* message="")
+		:ThrownJavaException(type+std::string(" ")+message)
+	{
+		jclass newExcCls = env->FindClass(type);
+		if (newExcCls != NULL) {
+			env->ThrowNew(newExcCls, message);
+		}
+	}
+};
+
+void swallow_cpp_exception_and_throw_java(JNIEnv * env) {
+	try {
+		throw;
+	} catch(const ThrownJavaException& e) {
+		//already reported to Java, ignore
+	} catch(const CImgIOException& e) {
+		//TRANSLATE ANY OTHER C++ EXCEPTIONS TO JAVA EXCEPTIONS HERE
+		NewJavaException(env, "org/pHash/ImageFormatException", e.what());
+	} catch(const std::exception& e) {
+		//translate unknown C++ exception to a Java exception
+		NewJavaException(env, "java/lang/Error", e.what());
+	} catch(...) {
+		//translate unknown C++ exception to a Java exception
+		NewJavaException(env, "java/lang/Error", "Unknown exception type");
+	}
+}
 
 typedef enum ph_jni_hash_types
 {
@@ -575,6 +612,7 @@ JNIEXPORT void JNICALL Java_org_pHash_pHash_cleanup
 JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_imageDistance
   (JNIEnv *e, jclass cl, jobject hash1, jobject hash2)
 {
+
 	if(e->IsInstanceOf(hash1, dctImClass) && e->IsInstanceOf(hash2, dctImClass))
 	{
 		ulong64 imHash, imHash2;
@@ -596,6 +634,7 @@ JNIEXPORT jdouble JNICALL Java_org_pHash_pHash_imageDistance
 		e->ReleaseByteArrayElements(h2, hash2, 0);
 		return hd;	
 	}
+
 	return -1;
 }
 
@@ -660,28 +699,50 @@ JNIEXPORT jobject JNICALL Java_org_pHash_pHash_dctImageHash
 	
 }
 
+
+
+struct OnScopeExit {
+
+	std::function<void()> on_exit;
+
+	OnScopeExit(std::function<void()> exit_fn) : on_exit(exit_fn) {}
+	~OnScopeExit() { on_exit(); }
+
+};
+
 JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
   (JNIEnv *e, jclass cl, jstring f)
 {
-    
-	const char *file = e->GetStringUTFChars(f,0);
-    
-	int N;
-    	uint8_t *hash = ph_mh_imagehash(file, N);
-	jobject imageHash = NULL;
-	if(hash && N > 0)
-	{
-		imageHash = e->NewObject(mhImClass, mhImCtor);
-		e->SetObjectField(imageHash, hash_filename, f);
 
-		jbyteArray hashVals = e->NewByteArray(N);
-		e->SetByteArrayRegion(hashVals, 0, N, (jbyte *)hash);
-		e->SetObjectField(imageHash, mhImHash_hash, hashVals);
-		free(hash);
+	try
+	{
+
+		const char *file = e->GetStringUTFChars(f, 0);
+		OnScopeExit([=]() { e->ReleaseStringUTFChars(f, file); });
+
+		int N;
+		uint8_t *hash = ph_mh_imagehash(file, N);
+		jobject imageHash = NULL;
+
+		if(hash && N > 0)
+		{
+			imageHash = e->NewObject(mhImClass, mhImCtor);
+			e->SetObjectField(imageHash, hash_filename, f);
+
+			jbyteArray hashVals = e->NewByteArray(N);
+			e->SetByteArrayRegion(hashVals, 0, N, (jbyte *)hash);
+			e->SetObjectField(imageHash, mhImHash_hash, hashVals);
+			OnScopeExit([=]() { free(hash);});
+		}
+
+		return imageHash;
+
+	} catch (...) {
+
+		swallow_cpp_exception_and_throw_java(e);
+		return NULL;
+
 	}
-    	e->ReleaseStringUTFChars(f,file);
-	
-	return imageHash;
 	
 }
 #ifdef HAVE_VIDEO_HASH
