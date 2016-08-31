@@ -714,11 +714,10 @@ JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
   (JNIEnv *e, jclass cl, jstring f)
 {
 
+	const char *file = e->GetStringUTFChars(f, 0);
+
 	try
 	{
-
-		const char *file = e->GetStringUTFChars(f, 0);
-		OnScopeExit([=]() { e->ReleaseStringUTFChars(f, file); });
 
 		int N;
 		uint8_t *hash = ph_mh_imagehash(file, N);
@@ -732,7 +731,7 @@ JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
 			jbyteArray hashVals = e->NewByteArray(N);
 			e->SetByteArrayRegion(hashVals, 0, N, (jbyte *)hash);
 			e->SetObjectField(imageHash, mhImHash_hash, hashVals);
-			OnScopeExit([=]() { free(hash);});
+			OnScopeExit([=]() { free(hash); });
 		}
 
 		return imageHash;
@@ -740,6 +739,7 @@ JNIEXPORT jobject JNICALL Java_org_pHash_pHash_mhImageHash
 	} catch (...) {
 
 		swallow_cpp_exception_and_throw_java(e);
+
 		return NULL;
 
 	}
