@@ -169,7 +169,9 @@ AS_IF([test "$use_png" = "y" -a \( "$image_hash" = "yes" -o "$video_hash" = "yes
 	CPPFLAGS="$CPPFLAGS -Dcimg_use_png"
 	LDFLAGS="$LDFLAGS -lpng"])
 
+CXXFLAGS="$CXXFLAGS --std=c++11"
 CFLAGS="$CXXFLAGS"
+
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/time.h unistd.h])
 

@@ -5815,12 +5815,12 @@ fi
 
 if test x"$debug" != x"no"; then :
   CXXFLAGS="`echo $CXXFLAGS' ' | sed 's/-O0-9//g'`"
-	CXXFLAGS="$CXXFLAGS -O0 -g"
+	CXXFLAGS="$CXXFLAGS -O0 -g --std=c++11"
 	LDFLAGS="$PTHREAD_LIBS $LIBS $CFLAGS $PTHREAD_CFLAGS"
 	LDFLAGS="`echo $LDFLAGS | sed 's/-g//g' | sed 's/-O0-9//g'`"
 else
   CXXFLAGS="`echo $CXXFLAGS' -ffast-math' | sed 's/-g//g' | sed 's/-O0-9//g'`"
-	CXXFLAGS="$CXXFLAGS -O3"
+	CXXFLAGS="$CXXFLAGS -O3 --std=c++11"
 	CPPFLAGS="`echo $CPPFLAGS | sed 's/-g//g' | sed 's/-O0-9//g'`"
 	LDFLAGS="$PTHREAD_LIBS $LIBS $CFLAGS $PTHREAD_CFLAGS"
 	LDFLAGS="`echo $LDFLAGS | sed 's/-g//g' | sed 's/-O0-9//g'`"
@@ -5838,7 +5838,7 @@ if test "$openmp" = "yes"; then :
 
 	CPPFLAGS="$CPPFLAGS -Dcimg_use_openmp"
 	if test $GCC = "yes"; then
-		CXXFLAGS="$CXXFLAGS -fopenmp"
+		CXXFLAGS="$CXXFLAGS -fopenmp --std=c++11"
 	fi
 
 fi
